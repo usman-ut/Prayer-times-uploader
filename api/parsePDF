@@ -1,0 +1,24 @@
+export default async function handler(req, res) {
+  const { imageBase64 } = req.body;
+  const GEMINI_KEY = process.env.GEMINI_API_KEY;
+  const GH_TOKEN = process.env.GITHUB_TOKEN;
+
+  if (!GEMINI_KEY || !GH_TOKEN) {
+    return res.status(400).json({ error: 'Missing keys: ' + (!GEMINI_KEY ? 'GEMINI ' : '') + (!GH_TOKEN ? 'GITHUB' : '') });
+  }
+
+  try {
+    const result = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Extract prayer times. Return JSON only.', inlineData: { mimeType: 'image/jpeg', data: imageBase64 } }] }]
+      })
+    });
+
+    const data = await result.json();
+    return res.status(200).json({ success: true, data });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+}
