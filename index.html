@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Times Uploader</title>
+  <style>
+    body { background: #1a1a1a; color: white; font-family: Arial; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 { text-align: center; }
+    input[type="file"] { padding: 10px; margin: 20px 0; }
+    button { background: #007AFF; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; }
+    button:hover { background: #0051D5; }
+    .status { margin-top: 20px; padding: 10px; border-radius: 5px; text-align: center; }
+    .success { background: #34C759; }
+    .error { background: #FF3B30; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Prayer Times Uploader</h1>
+    <input type="file" id="imageInput" accept="image/jpeg,image/png" />
+    <button onclick="uploadImage()">Parse & Update</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    async function uploadImage() {
+      const input = document.getElementById('imageInput');
+      const file = input.files[0];
+      const statusDiv = document.getElementById('status');
+
+      if (!file) {
+        statusDiv.textContent = 'Please select an image';
+        statusDiv.className = 'status error';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target.result.split(',')[1];
+        
+        try {
+          statusDiv.textContent = 'Processing...';
+          statusDiv.className = 'status';
+          
+          const response = await fetch('/api/parsePDF', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64: base64 })
+          });
+
+          const result = await response.json();
+          
+          if (response.ok) {
+            statusDiv.textContent = 'Success! Timetable updated.';
+            statusDiv.className = 'status success';
+            input.value = '';
+          } else {
+            statusDiv.textContent = 'Error: ' + result.error;
+            statusDiv.className = 'status error';
+          }
+        } catch (err) {
+          statusDiv.textContent = 'Error: ' + err.message;
+          statusDiv.className = 'status error';
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
