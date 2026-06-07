@@ -1,0 +1,9 @@
+{
+  "name": "prayer-times-uploader",
+  "version": "1.0.1",
+  "type": "module",
+  "dependencies": {
+    "@octokit/rest": "^20.0.0",
+    "node-fetch": "^3.0.0"
+  }
+}
